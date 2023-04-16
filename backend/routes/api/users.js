@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
+const passport = require('passport');
 // will raise a missingSchemaError bc user schema has not been registered yet
 // load the User model first -> in main app.js
 
@@ -55,4 +56,16 @@ router.post('/register', async (req, res, next) => {
   });
 });
 
+router.post('/login', async (req, res, next) => {
+  passport.authenticate('local', async function(err, user) {
+    if (err) return next(err);
+    if (!user) {
+      const err = new Error('Invalid credentials');
+      err.statusCode = 400;
+      err.errors = { email: "Invalid credentials" };
+      return next(err);
+    }
+    return res.json({ user });
+  })(req, res, next);
+});
 module.exports = router;
