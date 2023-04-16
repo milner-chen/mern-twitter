@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const passport = require('passport');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const User = mongoose.model('User');
-const passport = require('passport');
+const { loginUser, restoreUser } = require('../../config/passport');
+const { isProduction } = require('../../config/keys');
 // will raise a missingSchemaError bc user schema has not been registered yet
 // load the User model first -> in main app.js
 
@@ -47,7 +49,8 @@ router.post('/register', async (req, res, next) => {
       try {
         newUser.hashedPassword = hashedPassword;
         const user = await newUser.save();
-        return res.json({ user });
+        // return res.json({ user });
+        return res.json(await loginUser(user));
       }
       catch(err) {
         next(err);
@@ -56,6 +59,7 @@ router.post('/register', async (req, res, next) => {
   });
 });
 
+// login a user
 router.post('/login', async (req, res, next) => {
   passport.authenticate('local', async function(err, user) {
     if (err) return next(err);
@@ -65,7 +69,25 @@ router.post('/login', async (req, res, next) => {
       err.errors = { email: "Invalid credentials" };
       return next(err);
     }
-    return res.json({ user });
+    // return res.json({ user });
+    return res.json(await loginUser(user));
   })(req, res, next);
 });
+
+
+// get user that is currently logged in
+// get the csrf-token
+router.get('/current', restoreUser, (req, res) => {
+  if (!isProduction) {
+    const csrfToken = req.csrfToken();
+    res.cookie("CSRF-TOKEN", csrfToken);
+  }
+  if (!req.user) return res.json(null); // if no user, return null
+  res.json({
+    _id: req.user.id,
+    username: req.user.username,
+    email: req.user.email
+  });
+});
+
 module.exports = router;
