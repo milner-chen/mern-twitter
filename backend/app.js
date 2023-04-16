@@ -7,6 +7,8 @@ const cors = require('cors');
 const csurf = require('csurf');
 const isProduction = require('./config/keys');
 
+require('./models/User');
+
 const usersRouter = require('./routes/api/users');
 const tweetsRouter = require('./routes/api/tweets');
 const csrfRouter = require('./routes/api/csrf');
@@ -30,7 +32,7 @@ app.use(
         httpOnly: true
       }
     })
-  );
+);
 
 app.use('/api/users', usersRouter);
 app.use('/api/tweets', tweetsRouter);
@@ -45,7 +47,6 @@ app.use((req, res, next) => {
 const serverErrorLogger = debug('backend:error');
 
 app.use((err, req, res, next) => {
-    serverErrorLogger(err);
     serverErrorLogger(err);
     const statusCode = err.statusCode || 500;
     res.json({
