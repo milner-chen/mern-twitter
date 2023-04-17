@@ -1,5 +1,4 @@
 // new fetch
-import { startSession } from "../../../backend/models/Tweet";
 import jwtFetch from "./jwt";
 
 const RECEIVE_CURRENT_USER = "session/RECEIVE_CURRENT_USER";
@@ -35,6 +34,7 @@ const startSession = (userInfo, route) => async (dispatch) => {
             method: "POST",
             body: JSON.stringify(userInfo)
         });
+        console.log('sdfgntyrbtvrwc testing')
         // res returns both user and token
         const { user, token } = await res.json();
         // add token to localstorage
@@ -44,11 +44,17 @@ const startSession = (userInfo, route) => async (dispatch) => {
     } catch(err) {
         const res = await err.json();
         // if there are errors
-        if (res.statusCode === 400) {
+        if (res.statusCode >= 400) {
             // throw to errors slice
             return dispatch(receiveErrors(res.errors));
         }
     }
+};
+
+export const getCurrentUser = () => async dispatch => {
+    const res = await jwtFetch('/api/users/current');
+    const user = await res.json();
+    return dispatch(receiveCurrentUser(user));
 };
 
 export const logout = () => dispatch => {
@@ -73,11 +79,11 @@ const sessionReducer = (state=initialState, action) => {
 
 const nullErrors = null;
 
+// once logged in or sign up (which still logs you in tbh) -> clear errors
 export const sessionErrorsReducer = (state=nullErrors, action) => {
     switch(action.type) {
         case RECEIVE_SESSION_ERRORS:
             return action.errors;
-        // once logged in or sign up (which still logs you in tbh) -> clear errors
         case RECEIVE_CURRENT_USER:
         case CLEAR_SESSION_ERRORS:
             return nullErrors;

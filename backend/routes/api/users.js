@@ -86,7 +86,7 @@ router.get('/current', restoreUser, (req, res) => {
   }
   if (!req.user) return res.json(null); // if no user, return null
   res.json({
-    _id: req.user.id,
+    _id: req.user._id,
     username: req.user.username,
     email: req.user.email
   });
